@@ -1,8 +1,13 @@
 using PgmApi.Models;
 using BashSharp;
+using HealthChecks.UI.Client;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 
 namespace PgmApi.Extensions;
 
+/// <summary>
+/// An extension for our web application to take our endpoint mapping out of Program.cs
+/// </summary>
 public static class WebApplicationExtensions
 {
     private const string ApiV1 = "/api/v1";
@@ -11,6 +16,10 @@ public static class WebApplicationExtensions
     private const string HealthCheck = "/health";
     private const string PgmStateCommand = "pg_autoctl show state --json";
 
+    /// <summary>
+    /// Map endpoints of the api
+    /// </summary>
+    /// <param name="app"></param>
     public static void MapEndpoints(this WebApplication app)
     {
         app.MapGet("/", () => "Hello World!");
@@ -32,7 +41,13 @@ public static class WebApplicationExtensions
 
             return true;
         });
-
+        
         app.MapGet(ApiV1 + HealthCheck, () => "Hello World!");
+
+        app.MapHealthChecks("/health", new HealthCheckOptions
+        {
+            Predicate = _ => true,
+            ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
+        });
     }
 }
